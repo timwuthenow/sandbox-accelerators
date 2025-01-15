@@ -9,7 +9,8 @@
 		<version>10.0.0</version>
 	</parent>
 	<artifactId>kogito-example</artifactId>
-	<name>Kie-Tools Example :: jBPM Compact Architecture Quarkus Example</name>
+	<name>Example Accelerator Application :: jBPM Compact Architecture</name>
+	<version>1.0.0-SNAPSHOT</version>
 
 	<properties>
 		<compiler-plugin.version>3.10.1</compiler-plugin.version>
@@ -21,6 +22,7 @@
 		<quarkus.platform.version>3.8.4</quarkus.platform.version>
 		<kogito.bom.version>10.0.0</kogito.bom.version>
 		<jbpm.quarkus.devui.version>10.0.0</jbpm.quarkus.devui.version>
+		<kie.version>10.0.0</kie.version>
 		<version.io.quarkiverse.embedded.postgresql>0.2.2</version.io.quarkiverse.embedded.postgresql>
 	</properties>
 
@@ -67,26 +69,23 @@
 		</dependency>
 
 		<!-- Kogito and jBPM dependencies -->
-		<dependency>
-			<groupId>org.kie</groupId>
-			<artifactId>kogito-addons-quarkus-data-index-postgresql</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.kie</groupId>
-			<artifactId>kogito-addons-quarkus-jobs-management</artifactId>
-		</dependency>
+
+
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-with-drools-quarkus</artifactId>
 		</dependency>
+
 		<dependency>
-			<groupId>org.kie</groupId>
-			<artifactId>kie-addons-quarkus-process-svg</artifactId>
+			<groupId>org.kie.kogito</groupId>
+			<artifactId>kogito-addons-quarkus-events-decisions</artifactId>
 		</dependency>
+
 		<dependency>
-			<groupId>org.kie</groupId>
-			<artifactId>kie-addons-quarkus-process-management</artifactId>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-smallrye-reactive-messaging-kafka</artifactId>
 		</dependency>
+
 
 		<!-- Security -->
 		<dependency>
@@ -103,6 +102,15 @@
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-container-image-openshift</artifactId>
 		</dependency>
+		<!-- Runtimes -->
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-quarkus-decisions</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-quarkus-rules</artifactId>
+		</dependency>
 
 		<!-- Test dependencies -->
 		<dependency>
@@ -114,6 +122,12 @@
 			<groupId>io.quarkiverse.embedded.postgresql</groupId>
 			<artifactId>quarkus-embedded-postgresql</artifactId>
 			<version>${version.io.quarkiverse.embedded.postgresql}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.kie.kogito</groupId>
+			<artifactId>kogito-scenario-simulation</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
