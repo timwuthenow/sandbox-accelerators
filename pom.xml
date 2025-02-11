@@ -42,6 +42,16 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+			<dependency>
+				<groupId>org.kie.kogito</groupId>
+				<artifactId>kogito-quarkus-bom</artifactId>
+				<version>10.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.kie.kogito</groupId>
+				<artifactId>kogito-dependencies-bom</artifactId>
+				<version>10.0.0</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -76,15 +86,17 @@
 			<artifactId>jbpm-with-drools-quarkus</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.kie.kogito</groupId>
-			<artifactId>kogito-addons-quarkus-events-decisions</artifactId>
+		<!-- Decisions with Events -->
+		<!-- <dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kie-addons-quarkus-events-decisions</artifactId>
+			<version>${kie.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-smallrye-reactive-messaging-kafka</artifactId>
-		</dependency>
+		</dependency> -->
 
 
 		<!-- Security -->
@@ -113,9 +125,9 @@
 		</dependency>
 
 		<dependency>
-      			<groupId>org.kie.kogito</groupId>
-      			<artifactId>kogito-drools</artifactId>
-    		</dependency>
+			<groupId>org.kie.kogito</groupId>
+			<artifactId>kogito-drools</artifactId>
+		</dependency>
 
 		<!-- Test dependencies -->
 		<dependency>
