@@ -40,6 +40,13 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+			<dependency>
+				<groupId>org.jbpm</groupId>
+				<artifactId>jbpm-quarkus-devui-bom</artifactId>
+				<version>${kogito.bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -86,6 +93,12 @@
 		<dependency>
 			<groupId>org.kie</groupId>
 			<artifactId>kie-addons-quarkus-process-management</artifactId>
+		</dependency>
+
+		<!-- DevUI -->
+		<dependency>
+			<groupId>org.jbpm</groupId>
+			<artifactId>jbpm-quarkus-devui</artifactId>
 		</dependency>
 
 		<!-- Security -->
