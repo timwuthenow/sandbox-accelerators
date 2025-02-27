@@ -1,0 +1,112 @@
+name: Workshop Deployment
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      namespace:
+        description: 'Your workshop namespace'
+        required: true
+      service_name:
+        description: 'Your application name'
+        required: true
+        default: 'hiring-approval'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      SERVICE_NAME: ${{ github.event.inputs.service_name || 'hiring-approval' }}
+      DOMAIN_NAME: "aletyx-labs.aletyx.dev"
+      KEYCLOAK_BASE_URL: "keycloak.aletyx-labs.aletyx.dev"
+      REGISTRY_URL: "docker.aletyx-labs.aletyx.dev"
+
+    steps:
+      # Setup environment
+      - name: Set namespace
+        run: |
+          if [ -n "${{ github.event.inputs.namespace }}" ]; then
+            echo "NAMESPACE=${{ github.event.inputs.namespace }}" >> $GITHUB_ENV
+          else
+            echo "NAMESPACE=user-${{ github.actor }}" >> $GITHUB_ENV
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Build application
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Configure Docker authentication for Nexus
+        run: |
+          echo "${{ secrets.NEXUS_PASSWORD }}" | docker login ${REGISTRY_URL} -u ${{ secrets.NEXUS_USERNAME }} --password-stdin
+
+      - name: Build application with Maven
+        run: |
+          mvn clean package -Pkubernetes \
+            -Dquarkus.container-image.registry="${REGISTRY_URL}" \
+            -Dquarkus.container-image.group="${NAMESPACE}" \
+            -Dquarkus.container-image.name="${SERVICE_NAME}" \
+            -Dquarkus.container-image.tag="latest" \
+            -Dquarkus.container-image.build=true \
+            -Dquarkus.container-image.push=true \
+            -Dquarkus.kubernetes.deploy=false \
+            -Dquarkus.container-image.username="${{ secrets.NEXUS_USERNAME }}" \
+            -Dquarkus.container-image.password="${{ secrets.NEXUS_PASSWORD }}" \
+            -Dquarkus.container-image.insecure=true
+
+      # Prepare Kubernetes environment
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubectl with kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+
+      # Prepare deployment configuration
+      - name: Create deployment configuration file
+        run: |
+          cat > deploy.config << EOF
+          NAMESPACE=${NAMESPACE}
+          DOMAIN_NAME=${DOMAIN_NAME}
+          KEYCLOAK_BASE_URL=${KEYCLOAK_BASE_URL}
+          SERVICE_NAME=${SERVICE_NAME}
+          ADMIN_USERNAME=admin
+          ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+          NEXUS_USERNAME=${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD=${{ secrets.NEXUS_PASSWORD }}
+          EOF
+
+      - name: Make deployment scripts executable
+        run: |
+          chmod +x .github/scripts/deploy-keycloak.sh
+          chmod +x .github/scripts/deploy-components.sh
+
+      # Deploy components
+      - name: Deploy Keycloak configuration
+        run: |
+          .github/scripts/deploy-keycloak.sh
+
+      - name: Deploy application components
+        run: |
+          .github/scripts/deploy-components.sh
+
+      # Provide deployment information
+      - name: Display deployment information
+        run: |
+          echo "Application deployed!"
+          echo "Swagger UI: https://${SERVICE_NAME}.${DOMAIN_NAME}/q/swagger-ui"
+          echo "Task Console: https://${SERVICE_NAME}-task-console.${DOMAIN_NAME}"
+          echo "Management Console: https://${SERVICE_NAME}-management-console.${DOMAIN_NAME}"

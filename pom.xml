@@ -108,14 +108,25 @@
 		</dependency>
 
 		<!-- OpenShift -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-openshift</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-container-image-openshift</artifactId>
+		</dependency> -->
+
+		<!-- Kubernetes-->
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-kubernetes</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-container-image-jib</artifactId>
+		</dependency>
+
 
 		<!-- Test dependencies -->
 		<dependency>
@@ -169,6 +180,21 @@
 				<quarkus.openshift.deployment-kind>Deployment</quarkus.openshift.deployment-kind>
 				<quarkus.container-image.group>${project.groupId}</quarkus.container-image.group>
 				<quarkus.container-image.registry>image-registry.openshift-image-registry.svc:5000</quarkus.container-image.registry>
+			</properties>
+		</profile>
+
+		<profile>
+			<id>kubernetes</id>
+			<properties>
+				<quarkus.kubernetes.deploy>true</quarkus.kubernetes.deploy>
+				<quarkus.kubernetes.deployment-target>kubernetes</quarkus.kubernetes.deployment-target>
+				<quarkus.kubernetes.ingress.expose>true</quarkus.kubernetes.ingress.expose>
+				<quarkus.container-image.registry>docker.aletyx-labs.aletyx.dev</quarkus.container-image.registry>
+				<quarkus.container-image.group>aletyx-labs</quarkus.container-image.group>
+				<quarkus.container-image.name>${artifactId}</quarkus.container-image.name>
+				<quarkus.container-image.build>true</quarkus.container-image.build>
+				<quarkus.container-image.username>admin</quarkus.container-image.username>
+				<quarkus.container-image.insecure>true</quarkus.container-image.insecure>
 			</properties>
 		</profile>
 	</profiles>
