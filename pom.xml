@@ -125,7 +125,7 @@
 		<dependency>
 			<groupId>ai.aletyx.kie.kogito</groupId>
 			<artifactId>aletyx-kogito-addons-quarkus-jobs</artifactId>
-			<version>10.0.0-SNAPSHOT</version>
+			<version>10.1.0-SNAPSHOT</version>
 		</dependency>
 
 		<!-- Data Audit -->
