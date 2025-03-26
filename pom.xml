@@ -10,7 +10,32 @@
 	</parent>
 	<artifactId>kogito-example</artifactId>
 	<name>Kie-Tools Example :: jBPM Compact Architecture Quarkus Example</name>
+	<repositories>
+		<repository>
+			<id>aletyx-repository</id>
+			<url>https://nexus.aletyx-labs.aletyx.dev/repository/aletyx-maven/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 
+	<!-- Add Plugin Repositories (optional) -->
+	<pluginRepositories>
+		<pluginRepository>
+			<id>aletyx-repository</id>
+			<url>https://nexus.aletyx-labs.aletyx.dev/repository/aletyx-maven/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
 	<properties>
 		<compiler-plugin.version>3.10.1</compiler-plugin.version>
 		<maven.compiler.release>17</maven.compiler.release>
