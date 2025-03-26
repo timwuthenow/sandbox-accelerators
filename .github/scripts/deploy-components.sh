@@ -13,7 +13,7 @@ fi
 create_secure_ingress() {
     local service_name=$1
     local service_port=$2
-    local host="${service_name}-${NAMESPACE}.${DOMAIN_NAME}"
+    local host="${service_name}.${DOMAIN_NAME}"
 
     echo "Creating secure ingress for $service_name (port $service_port) at $host"
 

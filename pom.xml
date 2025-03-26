@@ -20,6 +20,8 @@
 		<quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
 		<quarkus.platform.version>3.8.4</quarkus.platform.version>
 		<kogito.bom.version>10.0.0</kogito.bom.version>
+		<kogito.bom.artifact-id>kogito-bom</kogito.bom.artifact-id>
+		<version.org.kie.kogito>10.0.0</version.org.kie.kogito>
 		<jbpm.quarkus.devui.version>10.0.0</jbpm.quarkus.devui.version>
 		<version.io.quarkiverse.embedded.postgresql>0.2.2</version.io.quarkiverse.embedded.postgresql>
 	</properties>
@@ -35,7 +37,7 @@
 			</dependency>
 			<dependency>
 				<groupId>org.kie.kogito</groupId>
-				<artifactId>kogito-bom</artifactId>
+				<artifactId>${kogito.bom.artifact-id}</artifactId>
 				<version>${kogito.bom.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
@@ -72,6 +74,19 @@
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-smallrye-graphql</artifactId>
 		</dependency>
+		<!-- Persistence -->
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-jdbc-postgresql</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-agroal</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kie-addons-quarkus-persistence-jdbc</artifactId>
+		</dependency>
 
 		<!-- Kogito and jBPM dependencies -->
 		<dependency>
@@ -93,6 +108,34 @@
 		<dependency>
 			<groupId>org.kie</groupId>
 			<artifactId>kie-addons-quarkus-process-management</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kie-addons-quarkus-source-files</artifactId>
+		</dependency>
+
+		<!-- Data Index Persistence -->
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kogito-addons-quarkus-data-index-persistence-postgresql</artifactId>
+		</dependency>
+
+		<!-- Jobs Service -->
+		<dependency>
+			<groupId>ai.aletyx.kie.kogito</groupId>
+			<artifactId>aletyx-kogito-addons-quarkus-jobs</artifactId>
+			<version>10.0.0-SNAPSHOT</version>
+		</dependency>
+
+		<!-- Data Audit -->
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kogito-addons-quarkus-data-audit-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kogito-addons-quarkus-data-audit</artifactId>
 		</dependency>
 
 		<!-- DevUI -->
@@ -174,28 +217,113 @@
 	<profiles>
 		<profile>
 			<id>openshift</id>
+			<activation>
+				<property>
+					<name>openshift</name>
+				</property>
+			</activation>
 			<properties>
+				<!-- OpenShift Configuration -->
 				<quarkus.kubernetes-client.trust-certs>true</quarkus.kubernetes-client.trust-certs>
+				<quarkus.openshift.deploy>true</quarkus.openshift.deploy>
 				<quarkus.openshift.expose>true</quarkus.openshift.expose>
 				<quarkus.openshift.deployment-kind>Deployment</quarkus.openshift.deployment-kind>
-				<quarkus.container-image.group>${project.groupId}</quarkus.container-image.group>
+				<quarkus.kubernetes.deployment-target>openshift</quarkus.kubernetes.deployment-target>
+				<quarkus.openshift.build-strategy>docker</quarkus.openshift.build-strategy>
+				<quarkus.container-image.build>true</quarkus.container-image.build>
+				<quarkus.container-image.group>${env.NAMESPACE}</quarkus.container-image.group>
+				<quarkus.application.name>${env.SERVICE_NAME}</quarkus.application.name>
 				<quarkus.container-image.registry>image-registry.openshift-image-registry.svc:5000</quarkus.container-image.registry>
+
+				<!-- Kogito Service URLs -->
+				<kogito.service.url>https://${env.SERVICE_NAME}-${env.NAMESPACE}.${env.BASE_URL}</kogito.service.url>
+				<kogito.jobs-service.url>
+					https://${env.SERVICE_NAME}-${env.NAMESPACE}.${env.BASE_URL}</kogito.jobs-service.url>
+				<kogito.dataindex.http.url>
+					https://${env.SERVICE_NAME}-${env.NAMESPACE}.${env.BASE_URL}</kogito.dataindex.http.url>
+
+				<!-- Labels and Metadata -->
+				<app.part.of.label>${env.APP_PART_OF}</app.part.of.label>
+				<quarkus.openshift.image-pull-secrets>registry-credentials</quarkus.openshift.image-pull-secrets>
+
+				<!-- CORS Configuration -->
+				<quarkus.http.cors>true</quarkus.http.cors>
+				<quarkus.http.cors.origins>${env.CORS_ORIGINS:*}</quarkus.http.cors.origins>
+				<quarkus.http.cors.methods>GET,POST,PUT,PATCH,DELETE,OPTIONS</quarkus.http.cors.methods>
+				<quarkus.http.cors.headers>
+					accept,authorization,content-type,x-requested-with,x-forward-for,content-length,host,origin,referer,Access-Control-Request-Method,Access-Control-Request-Headers</quarkus.http.cors.headers>
+				<quarkus.http.cors.exposed-headers>Content-Disposition,Content-Type</quarkus.http.cors.exposed-headers>
+				<quarkus.http.cors.access-control-max-age>24H</quarkus.http.cors.access-control-max-age>
+				<quarkus.http.cors.access-control-allow-credentials>true</quarkus.http.cors.access-control-allow-credentials>
+				<quarkus.openshift.base-jvm-image>registry.access.redhat.com/ubi8/openjdk-17:latest</quarkus.openshift.base-jvm-image>
+				<quarkus.openshift.labels.base-image>redhat-openjdk-17</quarkus.openshift.labels.base-image>
+				<!-- PostgreSQL Environment Variables -->
+				<quarkus.openshift.env-vars.POSTGRESQL_USER.value>kogito</quarkus.openshift.env-vars.POSTGRESQL_USER.value>
+				<quarkus.openshift.env-vars.POSTGRESQL_PASSWORD.value>kogito123</quarkus.openshift.env-vars.POSTGRESQL_PASSWORD.value>
+				<quarkus.openshift.env-vars.POSTGRESQL_DATABASE.value>kogito</quarkus.openshift.env-vars.POSTGRESQL_DATABASE.value>
+				<quarkus.openshift.env-vars.POSTGRESQL_SERVICE.value>${env.SERVICE_NAME}-postgresql</quarkus.openshift.env-vars.POSTGRESQL_SERVICE.value>
 			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>io.quarkus</groupId>
+					<artifactId>quarkus-openshift</artifactId>
+				</dependency>
+				<dependency>
+					<groupId>io.quarkus</groupId>
+					<artifactId>quarkus-container-image-openshift</artifactId>
+				</dependency>
+			</dependencies>
 		</profile>
 
+		<!-- Kubernetes specific profile -->
 		<profile>
 			<id>kubernetes</id>
+			<activation>
+				<property>
+					<name>kubernetes</name>
+				</property>
+				<!-- Make Kubernetes the default if no profile is specified -->
+				<activeByDefault>true</activeByDefault>
+			</activation>
 			<properties>
 				<quarkus.kubernetes.deploy>true</quarkus.kubernetes.deploy>
 				<quarkus.kubernetes.deployment-target>kubernetes</quarkus.kubernetes.deployment-target>
 				<quarkus.kubernetes.ingress.expose>true</quarkus.kubernetes.ingress.expose>
-				<quarkus.container-image.registry>docker.aletyx-labs.aletyx.dev</quarkus.container-image.registry>
+				<quarkus.container-image.registry>
+					${env.CONTAINER_REGISTRY:docker.aletyx-labs.aletyx.dev}</quarkus.container-image.registry>
 				<quarkus.container-image.group>aletyx-labs</quarkus.container-image.group>
-				<quarkus.container-image.name>${artifactId}</quarkus.container-image.name>
+				<quarkus.container-image.name>${project.artifactId}</quarkus.container-image.name>
 				<quarkus.container-image.build>true</quarkus.container-image.build>
 				<quarkus.container-image.username>admin</quarkus.container-image.username>
 				<quarkus.container-image.insecure>true</quarkus.container-image.insecure>
 			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>io.quarkus</groupId>
+					<artifactId>quarkus-kubernetes</artifactId>
+				</dependency>
+				<dependency>
+					<groupId>io.quarkus</groupId>
+					<artifactId>quarkus-container-image-jib</artifactId>
+				</dependency>
+			</dependencies>
 		</profile>
+
+		<!-- Local development profile -->
+		<profile>
+			<id>dev</id>
+			<activation>
+				<property>
+					<name>dev</name>
+				</property>
+			</activation>
+			<properties>
+				<quarkus.devservices.enabled>true</quarkus.devservices.enabled>
+				<quarkus.kogito.devservices.enabled>true</quarkus.kogito.devservices.enabled>
+				<quarkus.datasource.devservices.enabled>true</quarkus.datasource.devservices.enabled>
+			</properties>
+		</profile>
+
+
 	</profiles>
 </project>
